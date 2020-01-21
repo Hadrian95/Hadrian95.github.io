@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>FrogBother</title>
+  <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+  <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.css" />
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/vue@latest/dist/vue.min.js"></script>
+  <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
+  <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue-icons.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbvue/lib/css/mdb.min.css">
+
+  <link rel="stylesheet" href="chatstyle.css">
+</head>
+<body>
+  <script src="https://cdn.jsdelivr.net/npm/mdbvue/lib/index.js"></script>
+
+  <div id="app">
+    <div class="chat">
+      <mdb-container class="main-container col-sm-12 border border-secondary rounded-lg">
+        <mdb-row class="container-row col-sm-12">
+          <mdb-navbar style="width: 100%;" class="purple-gradient" dark>
+            <mdb-navbar-brand id="title">
+                {{ title }}
+            </mdb-navbar-brand>
+            <mdb-navbar-toggler>
+              <mdb-navbar-nav>
+                <mdb-nav-item href="#" active id="user">
+                    {{ mainUserName }}
+                </mdb-nav-item>
+                <mdb-nav-item href="#" active id="user">
+                    Settings
+                </mdb-nav-item>
+                <mdb-nav-item href="#" active id="user">
+                    Sign Out
+                </mdb-nav-item>
+              </mdb-navbar-nav>
+            </mdb-navbar-toggler>
+          </mdb-navbar>
+        </mdb-row>
+        <mdb-row class="container-row main-chat-body col-sm-12">
+          <mdb-list-group flush id="frog-list" class="col-md-4 col-sm-12 scroll-box">
+              <mdb-list-group-item disabled>Your Friends<mdb-badge color="primary" pill>{{ frogsCount }}</mdb-badge></mdb-list-group-item>
+              <div ref="frogsList" v-bind:key="frogInfo.frog" v-for="frogInfo in frogs" @click="loadChat(frogInfo)">
+                  <mdb-list-group-item :class="{'active': frogInfo === selectedFrog}" :action="true" tag="button">{{frogInfo.frog}}</mdb-list-group-item>
+              </div>
+              <mdb-btn color="light-blue" id="add-new-frog" @click.native="addingFrog = true">Bother A New Frog</mdb-btn>
+          </mdb-list-group>
+          <mdb-col col="8" id="chatBubbles" class="scroll-box chat-bubbles" >
+            <div v-for="message in selectedFrog.messages">
+                <mdb-card v-if="message.sender === mainUserFirstName" class="main-user-bubble rounded-lg">
+                  <mdb-card-body>
+                    <mdb-card-title>{{ message.sender }}</mdb-card-title>
+                    <mdb-card-text style="font-size: 15px;">{{ message.content }}<mdb-card-text>
+                    <p style="font-size: 11px; padding-top: 5px;">{{ message.sentTime }}</p>
+                  </mdb-card-body>
+                </mdb-card>
+                <mdb-card v-else class="other-user-bubble">
+                  <mdb-view style="background-color: #62b4ff;" class="rounded-lg">
+                    <mdb-card-body>
+                      <mdb-card-title style="color: white;">{{ message.sender }}</mdb-card-title>
+                      <mdb-card-text style="color: white; font-size: 15px;">{{ message.content }}<mdb-card-text>
+                      <p style="font-size: 11px; color: white; padding-top: 5px;">{{ message.sentTime }}</p>
+                    </mdb-card-body>
+                  </mdb-view>
+                </mdb-card>
+            </div>
+          </mdb-col>
+          <mdb-modal :show="addingFrog" @close="addingFrog = false">
+              <mdb-modal-header class="purple-gradient">
+                  <mdb-modal-title style="color: white;">Bother A New Frog</mdb-modal-title>
+              </mdb-modal-header>
+              <mdb-modal-body>
+                <mdb-input label="First Name" v-model="newFrog.firstName"/>
+                <mdb-input label="Last Name" v-model="newFrog.lastName"/>
+              </mdb-modal-body>
+              <mdb-modal-footer>
+                  <mdb-btn color="danger" @click.native="addingFrog = false">Cancel</mdb-btn>
+                  <mdb-btn color="success" @click="saveNewFrog">Add Frog</mdb-btn>
+              </mdb-modal-footer>
+          </mdb-modal>
+        </mdb-row>
+        <mdb-row class="container-row">
+          <div style="width: 100%;" class="col-sm-12">
+              <mdb-input style="float: right;" class="col-sm-8" placeholder="Start typing a message..." v-model="newMessage"></mdb-input>
+              <mdb-btn style="float: right;" class="col-sm-4" color="light-blue" @click="sendMessage">Send <mdb-icon icon="paper-plane"/></mdb-btn>
+          </div>
+        </mdb-row>
+      </mdb-container>
+    </div>
+  </div>
+
+  <script src="chat.js"></script>
+</body>
+</html>
